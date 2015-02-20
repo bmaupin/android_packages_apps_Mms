@@ -132,4 +132,6 @@
   <string name="progress_mms_title">Transaction MMS sur un autre abonnement en cours</string>
   <string name="progress_mms">Messagerie : MMS en cours\u2026</string>
   <string name="progress_mms_text">Appuyez pour réessayer</string>
+  <string name="pref_title_mms_enable_data">Activer/désactiver les données</string>
+  <string name="pref_summary_mms_enable_data">Activer/désactiver automatiquement les données mobiles lors d\'envoi et réception des MMS</string>
 </resources>

@@ -58,6 +58,7 @@ import com.android.internal.telephony.TelephonyProperties;
 import com.android.mms.LogTag;
 import com.android.mms.MmsConfig;
 import com.android.mms.R;
+import com.android.mms.ui.MessagingPreferenceActivity;
 import com.android.mms.util.DownloadManager;
 import com.android.mms.util.MultiSimUtility;
 import com.android.mms.util.RateController;
@@ -164,6 +165,8 @@ public class TransactionService extends Service implements Observer {
     private int launchRetryAttempt;
     private final int maxLaunchRetryAttempts = 5;
     private ArrayList<TxnRequest> mTxnSubIdMap = new ArrayList();
+    
+    private boolean dataEnabled = false;
 
     public Handler mToastHandler = new Handler() {
         @Override
@@ -425,7 +428,9 @@ public class TransactionService extends Service implements Observer {
 
     public void onNewIntent(Intent intent, int serviceId) {
         mConnMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (mConnMgr == null || !mConnMgr.getMobileDataEnabled()
+        if (mConnMgr == null ||
+                // Ignore this check if we'll be enabling data ourselves, since it won't yet be enabled 
+                (!MessagingPreferenceActivity.getEnableDataEnabled(this) && !mConnMgr.getMobileDataEnabled())
                 || !MmsConfig.isSmsEnabled(getApplicationContext())) {
             endMmsConnectivity();
             decRefCount();
@@ -896,6 +901,12 @@ public class TransactionService extends Service implements Observer {
         // Take a wake lock so we don't fall asleep before the message is downloaded.
         createWakeLock();
 
+        if (MessagingPreferenceActivity.getEnableDataEnabled(this) && !this.mConnMgr.getMobileDataEnabled()) {
+            this.dataEnabled = true;
+            Log.v(TAG, "beginMmsConnectivity: Enabling mobile data");
+            this.mConnMgr.setMobileDataEnabled(true);
+        }
+
         int result = mConnMgr.startUsingNetworkFeature(
                 ConnectivityManager.TYPE_MOBILE, Phone.FEATURE_ENABLE_MMS);
 
@@ -908,6 +919,13 @@ public class TransactionService extends Service implements Observer {
             case PhoneConstants.APN_REQUEST_STARTED:
                 acquireWakeLock();
                 return result;
+            // -1 indicates failure
+            case -1:
+                if (this.dataEnabled) {
+                    this.dataEnabled = false;
+                    Log.v(TAG, "beginMmsConnectivity: Aborting mobile data");
+                    this.mConnMgr.setMobileDataEnabled(false);
+                }
         }
 
         throw new IOException("Cannot establish MMS connectivity");
@@ -925,6 +943,12 @@ public class TransactionService extends Service implements Observer {
                 mConnMgr.stopUsingNetworkFeature(
                         ConnectivityManager.TYPE_MOBILE,
                         Phone.FEATURE_ENABLE_MMS);
+            }
+            
+            if (this.dataEnabled) {
+                this.dataEnabled = false;
+                Log.v(TAG, "endMmsConnectivity: Disabling mobile data");
+                this.mConnMgr.setMobileDataEnabled(false);
             }
         } finally {
             releaseWakeLock();

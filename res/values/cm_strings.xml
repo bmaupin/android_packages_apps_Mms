@@ -122,6 +122,9 @@
     <string name="pref_title_sms_split_counter">Split counter</string>
     <!-- Settings item description for boolean SMS Split 160 characters setting -->
     <string name="pref_summary_sms_split_counter">Adds counter to message ex. (1/2)</string>
+    
+    <string name="pref_title_mms_enable_data">Automatically enable data</string>
+    <string name="pref_summary_mms_enable_data">Automatically enable/disable mobile data when sending/receiving MMS messages</string>
 
     <!-- Blacklist preferences -->
     <string name="blacklist_title">Blacklist</string>

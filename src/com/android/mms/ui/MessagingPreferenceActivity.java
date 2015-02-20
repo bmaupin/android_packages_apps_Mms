@@ -128,6 +128,8 @@ public class MessagingPreferenceActivity extends PreferenceActivity
 
     // Delay send
     public static final String SEND_DELAY_DURATION       = "pref_key_send_delay";
+    
+    public static final String ENABLE_DATA              = "pref_key_mms_enable_data";
 
     private ListPreference mMessageSendDelayPref;
     private Preference mSmsLimitPref;
@@ -771,5 +773,12 @@ public class MessagingPreferenceActivity extends PreferenceActivity
         return MmsConfig.getGroupMmsEnabled() &&
                 groupMmsPrefOn &&
                 !TextUtils.isEmpty(MessageUtils.getLocalNumber());
+    }
+    
+    public static boolean getEnableDataEnabled(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean enableDataEnabled =
+            prefs.getBoolean(MessagingPreferenceActivity.ENABLE_DATA, false);
+        return enableDataEnabled;
     }
 }
